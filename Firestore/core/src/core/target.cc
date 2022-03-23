@@ -68,10 +68,13 @@ bool Target::IsDocumentQuery() const {
 std::vector<FieldFilter> Target::GetFieldFiltersForPath(
     const model::FieldPath& path) const {
   std::vector<FieldFilter> result;
-
   for (const Filter& filter : filters_) {
-    if (filter.IsAFieldFilter() && filter.field() == path) {
-      result.push_back(FieldFilter(filter));
+    if (filter.IsAFieldFilter()) {
+      FieldFilter field_filter(filter);
+      if (field_filter.field() != path) {
+        continue;
+      }
+      result.push_back(field_filter);
     }
   }
 
