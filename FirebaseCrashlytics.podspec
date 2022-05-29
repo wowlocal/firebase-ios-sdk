@@ -113,8 +113,11 @@ Pod::Spec.new do |s|
     }
     unit_tests.source_files = 'Crashlytics/UnitTests/*.[mh]',
                               'Crashlytics/UnitTests/*/*.[mh]'
+    unit_tests.exclude_files = 'Crashlytics/UnitTests/Data/*',
+                               'Crashlytics/UnitTests/dylib_stubs/*'
     unit_tests.resources = 'Crashlytics/UnitTests/Data/*',
                            'Crashlytics/UnitTests/*.clsrecord',
-                           'Crashlytics/UnitTests/FIRCLSMachO/data/*'
+                           'Crashlytics/UnitTests/FIRCLSMachO/data/*',
+                           'Crashlytics/UnitTests/dylib_stubs/*.dylib'
   end
 end

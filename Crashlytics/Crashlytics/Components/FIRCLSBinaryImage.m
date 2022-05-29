@@ -51,8 +51,7 @@ static void FIRCLSBinaryImageStoreNode(bool added, FIRCLSBinaryImageDetails imag
 static void FIRCLSBinaryImageRecordSlice(bool added, const FIRCLSBinaryImageDetails imageDetails);
 
 #pragma mark - Core API
-void FIRCLSBinaryImageInit(FIRCLSBinaryImageReadOnlyContext* roContext,
-                           FIRCLSBinaryImageReadWriteContext* rwContext) {
+void FIRCLSBinaryImageInit(void) {
   // initialize our node array to all zeros
   memset(&_firclsContext.writable->binaryImage, 0, sizeof(_firclsContext.writable->binaryImage));
   _firclsContext.writable->binaryImage.file.fd = -1;

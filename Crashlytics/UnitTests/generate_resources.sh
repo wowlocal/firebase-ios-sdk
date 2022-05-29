@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2020 Google LLC
+# Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 
-readonly DIR="$( git rev-parse --show-toplevel )"
+# We will be working with relative paths
+cd `dirname $0`
 
-"$DIR/Crashlytics/UnitTests/generate_resources.sh"
-
-"$DIR/Crashlytics/ProtoSupport/generate_crashlytics_protos.sh" || echo "Something went wrong generating protos.";
-
-pod gen "${DIR}/FirebaseCrashlytics.podspec" --auto-open --gen-directory="${DIR}/gen" --local-sources="${DIR}" --platforms=ios,macos,tvos --clean
+# Generate dylib for each file from dylib_stubs directory
+find dylib_stubs -iname "*.c" | while read path_to_file
+do
+	# generate via cocoapods?
+	clang "$path_to_file" -dynamiclib -o "${path_to_file%.*}".dylib -arch x86_64
+done
