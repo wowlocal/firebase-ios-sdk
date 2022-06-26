@@ -52,14 +52,18 @@
 - (void)testExample {
   FIRCLSBinaryImageInit();
 
-  void *handle = dlopen([self pathToFileNamed:@"test_ios_framework.framework/test_ios_framework"].cString,
+  void *handle = dlopen(
+                        [self pathToFileNamed:@"empty_func.dylib"].cString,
+                        //[self pathToFileNamed:@"test_ios_framework.framework/test_ios_framework"].cString,
                         RTLD_NOW);
                         //RTLD_FIRST);
   __auto_type context = _firclsContext;
 
+  char *err = dlerror();
+
   // TODO: check context->writable.binaryImage.file content
   // TODO: _firclsContext.writable->binaryImage.nodes content
-//  void* sym = dlsym(handle, "foo");
+  void* sym = dlsym(handle, "foo");
 //
 //  Dl_info dlInfo;
 //  int retval = dladdr(sym, &dlInfo);
