@@ -77,9 +77,10 @@ FIRCLSContextInitData FIRCLSContextBuildInitData(FIRCLSInternalReport* report,
   return initData;
 }
 
+// do it once in unit tests!
 bool FIRCLSContextInitialize(FIRCLSInternalReport* report,
                              FIRCLSSettings* settings,
-                             FIRCLSFileManager* fileManager) {
+                             FIRCLSFileManager* fileManager) { // mock
   FIRCLSContextInitData initDataObj = FIRCLSContextBuildInitData(report, settings, fileManager);
   FIRCLSContextInitData* initData = &initDataObj;
 

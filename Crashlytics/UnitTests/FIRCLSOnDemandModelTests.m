@@ -94,7 +94,7 @@
   FIRCLSInternalReport *report =
       [[FIRCLSInternalReport alloc] initWithPath:reportPath
                              executionIdentifier:@"TEST_EXECUTION_IDENTIFIER"];
-  FIRCLSContextInitialize(report, self.mockSettings, self.fileManager);
+  FIRCLSContextInitialize(report, self.mockSettings, self.fileManager); //#1
 }
 
 - (void)tearDown {

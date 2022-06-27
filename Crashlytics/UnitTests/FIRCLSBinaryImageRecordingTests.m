@@ -52,11 +52,21 @@
 - (void)testExample {
   FIRCLSBinaryImageInit();
 
-  void *handle = dlopen(
-                        [self pathToFileNamed:@"empty_func.dylib"].cString,
-                        //[self pathToFileNamed:@"test_ios_framework.framework/test_ios_framework"].cString,
-                        RTLD_NOW);
+  const char *lib_path = [[self pathToFileNamed:@"empty_func.dylib"] cStringUsingEncoding:NSASCIIStringEncoding];
+  void *handle = dlopen(lib_path, RTLD_NOW);
                         //RTLD_FIRST);
+  XCTAssertTrue(handle != NULL);
+
+  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{});
+  // check file
+  _firclsContext.writable->binaryImage.file; // (FIRCLSBinaryImageRecordSlice)
+
+  // if added check (FIRCLSBinaryImageStoreNode)
+  _firclsContext.writable->binaryImage.nodes;
+
+  // (FIRCLSBinaryImageStoreNode)
+  // if removed check that all fileds of FIRCLSBinaryImageRuntimeNode are cleared
+
   __auto_type context = _firclsContext;
 
   char *err = dlerror();
@@ -64,6 +74,12 @@
   // TODO: check context->writable.binaryImage.file content
   // TODO: _firclsContext.writable->binaryImage.nodes content
   void* sym = dlsym(handle, "foo");
+  Dl_info image_info;
+  memset(&image_info, 0, sizeof(Dl_info));
+  dladdr(sym, &image_info);
+
+  dlclose(handle);
+//  _dyld_get_image_header_containing_address(sym);
 //
 //  Dl_info dlInfo;
 //  int retval = dladdr(sym, &dlInfo);
