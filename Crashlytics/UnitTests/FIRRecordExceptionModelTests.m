@@ -33,9 +33,20 @@
 @property(nonatomic, strong) FIRCLSMockSettings *mockSettings;
 @property(nonatomic, strong) NSString *reportPath;
 
+
+//@property(nonatomic, strong) FIRCLSMockFileManager *fileManager;
+
 @end
 
 @implementation FIRRecordExceptionModelTests
+
++ (void)initializeContext {
+
+}
+
++ (void)setUp {
+  [self initializeContext];
+}
 
 - (void)setUp {
   self.fileManager = [[FIRCLSMockFileManager alloc] init];
