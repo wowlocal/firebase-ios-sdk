@@ -60,9 +60,9 @@
   self.fileManager = [[FIRCLSTempMockFileManager alloc] init];
 
   FIRCLSApplicationIdentifierModel *appIDModel = [[FIRCLSApplicationIdentifierModel alloc] init];
-  _mockSettings = [[FIRCLSMockSettings alloc] initWithFileManager:self.fileManager
+  self.mockSettings = [[FIRCLSMockSettings alloc] initWithFileManager:self.fileManager
                                                        appIDModel:appIDModel];
-  _onDemandModel = [[FIRCLSMockOnDemandModel alloc] initWithFIRCLSSettings:_mockSettings
+  self.onDemandModel = [[FIRCLSMockOnDemandModel alloc] initWithFIRCLSSettings:self.mockSettings
                                                                 sleepBlock:^(int delay){
                                                                 }];
 

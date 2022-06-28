@@ -34,6 +34,7 @@
 }
 
 - (BOOL)removeItemAtPath:(NSString *)path {
+  self.removedItemAtPath_path = path;
   [self.fileSystemDict removeObjectForKey:path];
 
   self.removeCount += 1;
@@ -87,6 +88,33 @@
       block(fullPath, extension);
     }
   }
+}
+
+- (NSNumber *)fileSizeAtPath:(NSString *)path {
+  if (self.fileSizeAtPathResult != nil) {
+    return self.fileSizeAtPathResult;
+  }
+
+  NSData *content = self.fileSystemDict[path];
+  if (![content isKindOfClass:NSData.class]) {
+    NSAssert(false, @"Unexpected content type at %@", path);
+  }
+  return [NSNumber numberWithUnsignedLong:content.length];
+}
+
+- (BOOL)moveItemAtPath:(NSString *)path toDirectory:(NSString *)destDir {
+  self.moveItemAtPath_path = path;
+  self.moveItemAtPath_destDir = destDir;
+
+  if (self.moveItemAtPathResult != nil) {
+    return self.moveItemAtPathResult.intValue > 0;
+  }
+
+  NSString *fileName = [path lastPathComponent];
+  NSString *newPath = [destDir stringByAppendingPathComponent:fileName];
+  self.fileSystemDict[newPath] = self.fileSystemDict[path];
+  self.fileSystemDict[path] = nil;
+  return true;
 }
 
 @end
