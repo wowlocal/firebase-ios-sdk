@@ -117,7 +117,9 @@ Pod::Spec.new do |s|
                                'Crashlytics/UnitTests/dylib_stubs/*'
     unit_tests.resources = 'Crashlytics/UnitTests/Data/*',
                            'Crashlytics/UnitTests/*.clsrecord',
-                           'Crashlytics/UnitTests/FIRCLSMachO/data/*',
-                           'Crashlytics/UnitTests/dylib_stubs/*.dylib'
+                           'Crashlytics/UnitTests/FIRCLSMachO/data/*'
+    unit_tests.tvos.resources = 'Crashlytics/UnitTests/dylib_stubs/build/tvos/*.dylib'
+    unit_tests.osx.resources = 'Crashlytics/UnitTests/dylib_stubs/build/macos/*.dylib'
+    unit_tests.ios.resources = 'Crashlytics/UnitTests/dylib_stubs/build/ios/*.dylib'
   end
 end

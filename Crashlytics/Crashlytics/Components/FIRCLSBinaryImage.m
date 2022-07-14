@@ -446,6 +446,8 @@ static void FIRCLSBinaryImageStoreNode(bool added, FIRCLSBinaryImageDetails imag
       *node = imageDetails.node;
       success = true;
 
+      // TODO: Fix cas logic!
+
       break;
     }
 

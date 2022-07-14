@@ -63,9 +63,9 @@ FIRCLSContextInitData FIRCLSContextBuildInitData(FIRCLSInternalReport* report,
   memset(&initData, 0, sizeof(FIRCLSContextInitData));
 
   initData.customBundleId = nil;
-  initData.sessionId = [[report identifier] UTF8String];
-  initData.rootPath = [[report path] UTF8String];
-  initData.previouslyCrashedFileRootPath = [[fileManager rootPath] UTF8String];
+  initData.sessionId = [report identifier].UTF8String;
+  initData.rootPath = [report path].fileSystemRepresentation;
+  initData.previouslyCrashedFileRootPath = [fileManager rootPath].fileSystemRepresentation;
   initData.errorsEnabled = [settings errorReportingEnabled];
   initData.customExceptionsEnabled = [settings customExceptionsEnabled];
   initData.maxCustomExceptions = [settings maxCustomExceptions];
@@ -84,6 +84,8 @@ bool FIRCLSContextInitialize(FIRCLSInternalReport* report,
   FIRCLSContextInitData initDataObj = FIRCLSContextBuildInitData(report, settings, fileManager);
   FIRCLSContextInitData* initData = &initDataObj;
 
+  NSString *rootPath = report.path;
+
   if (!initData) {
     return false;
   }
@@ -94,10 +96,9 @@ bool FIRCLSContextInitialize(FIRCLSInternalReport* report,
   dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
 
   if (!FIRCLSIsValidPointer(initData->rootPath)) {
+    FIRCLSSDKLogError("Failed to get report path\n");
     return false;
   }
-
-  NSString* rootPath = [NSString stringWithUTF8String:initData->rootPath];
 
   // setup our SDK log file synchronously, because other calls may depend on it
   _firclsContext.readonly->logPath = FIRCLSContextAppendToRoot(rootPath, @"sdk.log");
