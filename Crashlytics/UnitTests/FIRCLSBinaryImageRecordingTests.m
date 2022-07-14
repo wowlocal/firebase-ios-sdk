@@ -57,44 +57,100 @@
                         //RTLD_FIRST);
   XCTAssertTrue(handle != NULL);
 
-  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{});
-  // check file
-  _firclsContext.writable->binaryImage.file; // (FIRCLSBinaryImageRecordSlice)
+- (void)testFileBinaryImageStore {
+  NSString *imageStorePath = [self.reportPath stringByAppendingPathComponent:FIRCLSReportBinaryImageFile];
+  XCTAssertTrue(strcmp(imageStorePath.fileSystemRepresentation,
+                       _firclsContext.readonly->binaryimage.path) == 0);
 
-  // if added check (FIRCLSBinaryImageStoreNode)
-  _firclsContext.writable->binaryImage.nodes;
+  NSString *dylibPath = [self pathToFileNamed:@"empty_func.dylib"]; //[self pathToFileNamed:@"empty_func2.dylib"];
+  void *handle = dlopen(dylibPath.fileSystemRepresentation, RTLD_NOW);
+  XCTAssertTrue(handle != NULL);
+  __auto_type getRecords = ^NSArray<NSString *> *(void) {
+    return [[NSString stringWithContentsOfFile:imageStorePath
+                                      encoding:NSUTF8StringEncoding
+                                         error:NULL]
+            componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet];
+  };
 
-  // (FIRCLSBinaryImageStoreNode)
-  // if removed check that all fileds of FIRCLSBinaryImageRuntimeNode are cleared
+  __block NSString *imageInfoString = nil;
 
-  __auto_type context = _firclsContext;
-
-  char *err = dlerror();
-
-  // TODO: check context->writable.binaryImage.file content
-  // TODO: _firclsContext.writable->binaryImage.nodes content
-  void* sym = dlsym(handle, "foo");
-  Dl_info image_info;
-  memset(&image_info, 0, sizeof(Dl_info));
-  dladdr(sym, &image_info);
+  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{
+    __block NSRange dylibRecordPrefix = NSMakeRange(NSNotFound, 0);
+    [getRecords() enumerateObjectsUsingBlock:^(NSString *record, NSUInteger idx, BOOL *stop) {
+      dylibRecordPrefix = [record rangeOfString:[NSString stringWithFormat:@"{\"load\":{\"path\":\"%@\",", dylibPath]];
+      if (dylibRecordPrefix.location != NSNotFound) {
+        *stop = true;
+        imageInfoString = [record substringWithRange:NSMakeRange(dylibRecordPrefix.length, record.length - dylibRecordPrefix.length)];
+      }
+    }];
+    XCTAssertTrue(dylibRecordPrefix.location != NSNotFound, @"%@ does not contain information about loaded dylib", imageStorePath);
+    XCTAssertTrue(dylibRecordPrefix.location == 0, @"clsrecord format error");
+  });
 
   dlclose(handle);
-//  _dyld_get_image_header_containing_address(sym);
-//
-//  Dl_info dlInfo;
-//  int retval = dladdr(sym, &dlInfo);
 
-//  sleep(1);
-  //  dlopen
-  // wait until the recording is finished
-  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{});
+  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{
+    __block bool containsUnloadRecord = false;
+    [getRecords() enumerateObjectsUsingBlock:^(NSString *record, NSUInteger idx, BOOL *stop) {
+      if ([record hasPrefix:@"{\"unload\":{\"path\":null,"]) {
+        containsUnloadRecord = [record hasSuffix:imageInfoString];
+        if (containsUnloadRecord) *stop = true;
+      }
+    }];
+    XCTAssertTrue(containsUnloadRecord, @"%@ does not contain information about unloaded dylib", imageStorePath);
+  });
 }
 
-- (void)testAnother {
-  // check number fileed nodes
-//  FIRCLSBinaryImageInit(); // dispatch once for tests?
+- (void)testInMemoryBinaryImageStore {
+  NSString *dylibPath = [self pathToFileNamed:@"empty_func.dylib"];
+  // 0. register _dyld_register_func_for_add_image
+  // then capture all values and compare with imageDetails
+  void *handle = dlopen(dylibPath.fileSystemRepresentation, RTLD_NOW);
+  XCTAssertTrue(handle != NULL);
 
-  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{});
+  __block void *dylibStartAddress;
+
+  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{
+    void* sym = dlsym(handle, "empty");
+    XCTAssertTrue(sym != NULL, @"%s", dlerror());
+
+    Dl_info image_info;
+    memset(&image_info, 0, sizeof(Dl_info));
+    dladdr(sym, &image_info);
+    dylibStartAddress = image_info.dli_fbase;
+
+    bool found = false;
+    for (int i = 0; i < CLS_BINARY_IMAGE_RUNTIME_NODE_COUNT; ++i) {
+      FIRCLSBinaryImageRuntimeNode node = _firclsContext.writable->binaryImage.nodes[i];
+      if (dylibStartAddress == node.baseAddress) {
+        found = true;
+        XCTAssertTrue(
+                      node.size != 0 &
+                      node.unwindInfo != NULL
+                      );
+        break;
+      }
+    }
+    XCTAssertTrue(found, @"dylib not found in the In-Memory Storage");
+  });
+
+  dlclose(handle);
+
+  dispatch_sync(FIRCLSGetBinaryImageQueue(), ^{
+    bool found = false;
+    for (int i = 0; i < CLS_BINARY_IMAGE_RUNTIME_NODE_COUNT; ++i) {
+      FIRCLSBinaryImageRuntimeNode node = _firclsContext.writable->binaryImage.nodes[i];
+      if (dylibStartAddress == node.baseAddress) {
+        found = true;
+        XCTAssertTrue(
+                      node.size == 0 &
+                      node.unwindInfo == NULL
+                      );
+        break;
+      }
+    }
+    XCTAssertTrue(found, @"dylib %@ must persist after unloading the dylib", dylibPath);
+  });
 }
 
 @end

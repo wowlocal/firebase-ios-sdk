@@ -385,6 +385,7 @@ static void FIRCLSBinaryImageChanged(bool added,
 
   imageDetails.slice = FIRCLSMachOSliceWithHeader((void*)mh);
   imageDetails.vmaddr_slide = vmaddr_slide;
+  // fill imageDetails fields using slice & vmaddr_slide
   FIRCLSBinaryImageFillInImageDetails(&imageDetails);
 
   FIRCLSImageChange *change = malloc(sizeof(FIRCLSImageChange));
@@ -406,6 +407,7 @@ static void FIRCLSBinaryImageStoreNode(bool added, FIRCLSBinaryImageDetails imag
     return;
   }
 
+  // looking for the empty space if an image added
   void* searchAddress = NULL;
   bool success = false;
   FIRCLSBinaryImageRuntimeNode* nodes = _firclsContext.writable->binaryImage.nodes;
